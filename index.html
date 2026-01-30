@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Submit</title>
+  <title>Form Submit with OTP</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -54,7 +54,7 @@
       margin-top: 15px; 
     }
     button:hover { background: #002060; }
-    #otp-section { display: none; margin-top: 30px; }
+    #otp-page { display: none; }
     .success-msg { 
       text-align: center; 
       color: green; 
@@ -66,6 +66,11 @@
       color: red; 
       font-size: 16px; 
       margin: 10px 0; 
+      display: none; 
+    }
+    #back-btn {
+      background: #777;
+      margin-top: 10px;
     }
     @media (max-width: 480px) {
       .container { padding: 20px; }
@@ -74,10 +79,9 @@
 </head>
 <body>
 
-  <div class="container">
-    <h1>Details Bharo</h1>
-    
-    <!-- Form Section -->
+  <!-- Form Page -->
+  <div class="container" id="form-page">
+    <h1>Apni Details Bharo</h1>
     <form id="myForm">
       <label>Full Name</label>
       <input type="text" id="name" required>
@@ -90,65 +94,77 @@
 
       <button type="submit">Submit Karo</button>
     </form>
+  </div>
 
-    <!-- OTP Section (hidden by default) -->
-    <div id="otp-section">
-      <div class="success-msg">Submit ho gaya! Ab OTP verify karo</div>
-      <label>6-Digit OTP Daalo</label>
-      <input type="text" id="otp-input" maxlength="6" pattern="[0-9]{6}" placeholder="Enter OTP" required>
-      <button id="verify-btn">Verify OTP</button>
-      <p id="otp-error" class="error-msg" style="display:none;">Galat OTP! Dobara try karo.</p>
-    </div>
+  <!-- OTP Page (dusra page) -->
+  <div class="container" id="otp-page">
+    <h1>OTP Verify Karo</h1>
+    <div class="success-msg">Form submit ho gaya! OTP bheja gaya hai</div>
+    <label>6-Digit OTP Daalo</label>
+    <input type="text" id="otp-input" maxlength="6" pattern="[0-9]{6}" placeholder="Enter OTP" required autofocus>
+    <button id="verify-btn">Verify Karo</button>
+    <p id="otp-error" class="error-msg">Galat OTP! Dobara try karo.</p>
+    <button id="back-btn">Wapas Form Mein Jao</button>
   </div>
 
   <script>
+    const formPage = document.getElementById('form-page');
+    const otpPage = document.getElementById('otp-page');
     const form = document.getElementById('myForm');
-    const otpSection = document.getElementById('otp-section');
     const otpInput = document.getElementById('otp-input');
     const verifyBtn = document.getElementById('verify-btn');
     const otpError = document.getElementById('otp-error');
+    const backBtn = document.getElementById('back-btn');
 
-    // Fake OTP for testing (real mein backend se generate karna)
+    // Fake OTP for testing (real mein backend se generate + SMS/email karo)
     const FAKE_OTP = "123456";
+
+    let formData = null; // Form data temporary store karne ke liye
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const payload = {
+      formData = {
         name: document.getElementById('name').value.trim(),
         mobile: document.getElementById('mobile').value.trim(),
         dob: document.getElementById('dob').value,
         time: new Date().toLocaleString('en-IN')
       };
 
-      try {
-        const res = await fetch('/api/submissions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          // Form hide karo, OTP section dikhao
-          form.style.display = 'none';
-          otpSection.style.display = 'block';
-        } else {
-          alert('Submit mein problem aayi, dobara try karo');
-        }
-      } catch (err) {
-        alert('Network error: ' + err.message);
-      }
+      // Form hide karo, OTP page dikhao
+      formPage.style.display = 'none';
+      otpPage.style.display = 'block';
+      otpInput.focus();
+      otpError.style.display = 'none';
     });
 
-    // OTP Verify button
-    verifyBtn.addEventListener('click', () => {
+    // OTP Verify
+    verifyBtn.addEventListener('click', async () => {
       const enteredOtp = otpInput.value.trim();
 
       if (enteredOtp === FAKE_OTP) {
-        otpError.style.display = 'none';
-        alert('OTP sahi hai! Verification complete ✅\nAb aapka data save ho gaya hai.');
-        // Optional: page reload ya thank you page dikha sakte ho
-        // location.reload();
+        if (!formData) {
+          alert('Kuch galat ho gaya, form dobara bharo');
+          location.reload();
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+
+          if (res.ok) {
+            alert('OTP sahi hai! Data admin mein save ho gaya ✅');
+            location.reload(); // Optional: page refresh kar do
+          } else {
+            alert('Data save nahi hua, dobara try karo');
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        }
       } else {
         otpError.style.display = 'block';
       }
@@ -156,9 +172,15 @@
 
     // Enter key se verify
     otpInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        verifyBtn.click();
-      }
+      if (e.key === 'Enter') verifyBtn.click();
+    });
+
+    // Back button
+    backBtn.addEventListener('click', () => {
+      otpPage.style.display = 'none';
+      formPage.style.display = 'block';
+      form.reset();
+      formData = null;
     });
   </script>
 </body>
