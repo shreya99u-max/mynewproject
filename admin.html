@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Live Colorful Submissions</title>
+  <title>Admin - Live Submissions</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,31 +13,35 @@
       color: #333;
     }
     .container {
-      max-width: 800px;
+      max-width: 850px;
       margin: auto;
       background: white;
       padding: 25px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-    /* Digital Watch Style */
-    #digital-watch {
+    /* Digital Watch + Date */
+    #watch-container {
       text-align: center;
-      margin-bottom: 25px;
-      font-size: 2.8rem;
+      margin-bottom: 30px;
+    }
+    #digital-watch {
+      font-size: 3.2rem;
       font-weight: bold;
       color: #003087;
       background: #e9f0ff;
-      padding: 15px;
+      padding: 18px 25px;
       border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      letter-spacing: 3px;
+      display: inline-block;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+      letter-spacing: 5px;
       font-family: 'Courier New', Courier, monospace;
     }
-    h1 {
-      color: #003087;
-      text-align: center;
-      margin-bottom: 15px;
+    #date-display {
+      font-size: 1.5rem;
+      color: #555;
+      margin-top: 10px;
+      font-weight: 500;
     }
     #list {
       display: flex;
@@ -45,7 +49,7 @@
       gap: 15px;
       min-height: 300px;
       overflow-y: auto;
-      max-height: 60vh;
+      max-height: 70vh;
     }
     .entry {
       padding: 16px 20px;
@@ -53,7 +57,7 @@
       color: white;
       font-size: 15px;
       line-height: 1.5;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
     .red    { background: #e74c3c; }
     .blue   { background: #3498db; }
@@ -64,46 +68,88 @@
       opacity: 0.9;
       font-size: 13px;
     }
-    #refreshBtn {
-      background: #003087;
-      color: white;
-      padding: 12px 30px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 15px auto;
-      display: block;
-    }
-    #refreshBtn:hover { background: #002060; }
     #no-entries {
       text-align: center;
       color: #777;
       font-style: italic;
+      margin: 20px 0;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Digital Watch Yahan Upar Lagega -->
-    <div id="digital-watch">00:00:00</div>
+    <!-- Digital Watch + Date -->
+    <div id="watch-container">
+      <div id="digital-watch">00:00:00</div>
+      <div id="date-display">Loading date...</div>
+    </div>
 
-    <h1>Admin - Live Submissions (Colorful - 2 sec update)</h1>
-    <button id="refreshBtn">Abhi Refresh Karo</button>
     <div id="list">
       <p id="no-entries">Loading... ya abhi koi submission nahi aaya.</p>
     </div>
   </div>
 
   <script>
-    // Digital Watch Real-time (IST)
+    // Real-time Digital Watch + Date (IST)
     function updateWatch() {
       const now = new Date();
-      // IST = UTC + 5:30
-      now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + 330);
-      
-      const hours = String(now.getHours()).padStart(2, '0');
+      now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + 330); // IST
+
+      const hours   = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      
-      document.getElementById('digital-watch
+
+      const day   = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year  = now.getFullYear();
+
+      document.getElementById('digital-watch').textContent = `\( {hours}: \){minutes}:${seconds}`;
+      document.getElementById('date-display').textContent = `\( {day}/ \){month}/${year}`;
+    }
+
+    setInterval(updateWatch, 1000);
+    updateWatch();
+
+    // Submissions auto load
+    const list = document.getElementById('list');
+    const colors = ['red', 'blue', 'green'];
+    let colorIndex = 0;
+
+    async function loadData() {
+      try {
+        const res = await fetch('/api/submissions');
+        if (!res.ok) throw new Error('API fail');
+
+        const data = await res.json();
+
+        list.innerHTML = '';
+
+        if (data.length === 0) {
+          list.innerHTML = '<p id="no-entries">Abhi koi submission nahi aaya hai.</p>';
+          return;
+        }
+
+        data.reverse().forEach(item => {
+          const entry = document.createElement('div');
+          entry.classList.add('entry', colors[colorIndex]);
+
+          entry.innerHTML = `
+            <strong>Name:</strong> ${item.name || 'N/A'}<br>
+            <strong>Mobile:</strong> ${item.mobile || 'N/A'}<br>
+            <strong>DOB:</strong> ${item.dob || 'N/A'}<br>
+            <small>Submitted: ${item.time || 'N/A'}</small>
+          `;
+
+          list.appendChild(entry);
+          colorIndex = (colorIndex + 1) % colors.length;
+        });
+      } catch (err) {
+        list.innerHTML = `<p style="color:red; text-align:center;">Error: ${err.message}</p>`;
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 2000); // Har 2 second mein refresh
+  </script>
+</body>
+</html>
