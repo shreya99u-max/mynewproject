@@ -3,44 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Live Submissions</title>
+  <title>Mera Admin - Live Submissions</title>
   <style>
-    body { font-family: Arial; max-width: 800px; margin: 30px auto; padding: 20px; background: #f0f4f8; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 30px; color: #333; }
     h1 { color: #003087; text-align: center; }
-    .entry { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .entry { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 5px solid #003087; }
     #list { min-height: 200px; }
+    #refreshBtn { background: #003087; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    #refreshBtn:hover { background: #002060; }
   </style>
 </head>
 <body>
-  <h1>Admin Panel - Live Entries</h1>
-  <div id="list">Loading submissions... (har 5 sec update)</div>
+  <div class="container">
+    <h1>Admin Panel - Live Form Submissions</h1>
+    <button id="refreshBtn">Manual Refresh Karo</button>
+    <div id="list">Loading submissions... (Auto har 5 sec update)</div>
+  </div>
 
   <script>
     const list = document.getElementById('list');
+    const refreshBtn = document.getElementById('refreshBtn');
     let interval;
 
-    function load() {
-      fetch('/api/submissions')
-        .then(res => res.json())
-        .then(data => {
-          if (data.length === 0) {
-            list.innerHTML = '<p>Abhi koi entry nahi aayi.</p>';
-          } else {
-            list.innerHTML = data.map(d => `
-              <div class="entry">
-                <strong>Name:</strong> ${d.name}<br>
-                <strong>Mobile:</strong> ${d.mobile}<br>
-                <strong>DOB:</strong> ${d.dob}<br>
-                <small>Time: ${d.time}</small>
-              </div>
-            `).join('');
-          }
-        })
-        .catch(() => list.innerHTML = '<p>Error loading data. Check if deployed correctly.</p>');
+    async function loadData() {
+      try {
+        const res = await fetch('/api/submissions');
+        if (!res.ok) throw new Error('API response not OK');
+        const data = await res.json();
+        console.log('Fetched data:', data); // console mein check karne ke liye
+
+        if (data.length === 0) {
+          list.innerHTML = '<p style="color: red;">Abhi koi submission nahi aaya hai.</p>';
+        } else {
+          list.innerHTML = data.map((item, index) => `
+            <div class="entry">
+              <strong>#${index + 1}</strong><br>
+              <strong>Name:</strong> ${item.name || 'N/A'}<br>
+              <strong>Mobile:</strong> ${item.mobile || 'N/A'}<br>
+              <strong>DOB:</strong> ${item.dob || 'N/A'}<br>
+              <small>Submitted at: ${item.time || 'N/A'}</small>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        list.innerHTML = `<p style="color: red;">Error loading data: ${err.message}. Check console (F12) aur /api/submissions.</p>`;
+      }
     }
 
-    load(); // pehli baar load
-    interval = setInterval(load, 5000); // auto refresh har 5 sec
+    loadData(); // pehli baar
+    interval = setInterval(loadData, 5000); // auto
+
+    refreshBtn.addEventListener('click', loadData);
   </script>
 </body>
 </html>
