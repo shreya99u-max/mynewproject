@@ -3,91 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Submit with OTP</title>
+  <title>Form Submit</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: #f0f4f8; 
-      margin: 0; 
-      padding: 15px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: 100vh; 
-    }
-    .container { 
-      background: white; 
-      padding: 30px; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-      width: 100%; 
-      max-width: 420px; 
-    }
-    h1 { 
-      text-align: center; 
-      color: #003087; 
-      margin-bottom: 25px; 
-    }
-    label { 
-      display: block; 
-      margin: 15px 0 6px; 
-      font-weight: bold; 
-      color: #333; 
-    }
-    input { 
-      width: 100%; 
-      padding: 12px; 
-      border: 1px solid #ccc; 
-      border-radius: 6px; 
-      box-sizing: border-box; 
-      font-size: 16px; 
-    }
-    button { 
-      width: 100%; 
-      padding: 14px; 
-      background: #003087; 
-      color: white; 
-      border: none; 
-      border-radius: 6px; 
-      font-size: 17px; 
-      cursor: pointer; 
-      margin-top: 15px; 
-    }
-    button:hover { background: #002060; }
-    #otp-page { display: none; }
-    .success-msg { 
-      text-align: center; 
-      color: green; 
-      font-size: 18px; 
-      margin: 20px 0; 
-    }
-    .error-msg { 
-      text-align: center; 
-      color: red; 
-      font-size: 16px; 
-      margin: 10px 0; 
-      display: none; 
-    }
-    #back-btn {
-      background: #777;
-      margin-top: 10px;
-    }
-    @media (max-width: 480px) {
-      .container { padding: 20px; }
-    }
+    body { font-family: Arial; background: #f0f4f8; margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    .container { background:white; padding:30px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:420px; width:100%; }
+    h1 { text-align:center; color:#003087; margin-bottom:25px; }
+    label { display:block; margin:15px 0 6px; font-weight:bold; color:#333; }
+    input { width:100%; padding:12px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; font-size:16px; }
+    button { width:100%; padding:14px; background:#003087; color:white; border:none; border-radius:6px; font-size:17px; cursor:pointer; margin-top:15px; }
+    button:hover { background:#002060; }
   </style>
 </head>
 <body>
-
-  <!-- Form Page -->
-  <div class="container" id="form-page">
-    <h1>Apni Details Bharo</h1>
+  <div class="container">
+    <h1>Details Bharo</h1>
     <form id="myForm">
       <label>Full Name</label>
       <input type="text" id="name" required>
 
       <label>Mobile Number (10 digits)</label>
-      <input type="tel" id="mobile" pattern="[0-9]{10}" required placeholder="98xxxxxxxx">
+      <input type="tel" id="mobile" pattern="[0-9]{10}" required>
 
       <label>Date of Birth</label>
       <input type="date" id="dob" required>
@@ -96,91 +31,22 @@
     </form>
   </div>
 
-  <!-- OTP Page (dusra page) -->
-  <div class="container" id="otp-page">
-    <h1>OTP Verify Karo</h1>
-    <div class="success-msg">Form submit ho gaya! OTP bheja gaya hai</div>
-    <label>6-Digit OTP Daalo</label>
-    <input type="text" id="otp-input" maxlength="6" pattern="[0-9]{6}" placeholder="Enter OTP" required autofocus>
-    <button id="verify-btn">Verify Karo</button>
-    <p id="otp-error" class="error-msg">Galat OTP! Dobara try karo.</p>
-    <button id="back-btn">Wapas Form Mein Jao</button>
-  </div>
-
   <script>
-    const formPage = document.getElementById('form-page');
-    const otpPage = document.getElementById('otp-page');
-    const form = document.getElementById('myForm');
-    const otpInput = document.getElementById('otp-input');
-    const verifyBtn = document.getElementById('verify-btn');
-    const otpError = document.getElementById('otp-error');
-    const backBtn = document.getElementById('back-btn');
-
-    // Fake OTP for testing (real mein backend se generate + SMS/email karo)
-    const FAKE_OTP = "123456";
-
-    let formData = null; // Form data temporary store karne ke liye
-
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('myForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      formData = {
+      const data = {
         name: document.getElementById('name').value.trim(),
         mobile: document.getElementById('mobile').value.trim(),
         dob: document.getElementById('dob').value,
         time: new Date().toLocaleString('en-IN')
       };
 
-      // Form hide karo, OTP page dikhao
-      formPage.style.display = 'none';
-      otpPage.style.display = 'block';
-      otpInput.focus();
-      otpError.style.display = 'none';
-    });
+      // Temporary store in localStorage
+      localStorage.setItem('pendingSubmission', JSON.stringify(data));
 
-    // OTP Verify
-    verifyBtn.addEventListener('click', async () => {
-      const enteredOtp = otpInput.value.trim();
-
-      if (enteredOtp === FAKE_OTP) {
-        if (!formData) {
-          alert('Kuch galat ho gaya, form dobara bharo');
-          location.reload();
-          return;
-        }
-
-        try {
-          const res = await fetch('/api/submissions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-          });
-
-          if (res.ok) {
-            alert('OTP sahi hai! Data admin mein save ho gaya ✅');
-            location.reload(); // Optional: page refresh kar do
-          } else {
-            alert('Data save nahi hua, dobara try karo');
-          }
-        } catch (err) {
-          alert('Network error: ' + err.message);
-        }
-      } else {
-        otpError.style.display = 'block';
-      }
-    });
-
-    // Enter key se verify
-    otpInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') verifyBtn.click();
-    });
-
-    // Back button
-    backBtn.addEventListener('click', () => {
-      otpPage.style.display = 'none';
-      formPage.style.display = 'block';
-      form.reset();
-      formData = null;
+      // Redirect to OTP page
+      window.location.href = 'otp.html';
     });
   </script>
 </body>
