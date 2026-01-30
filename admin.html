@@ -3,59 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mera Admin - Live Submissions</title>
+  <title>Colorful Messages - New Top Par</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 30px; color: #333; }
-    h1 { color: #003087; text-align: center; }
-    .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .entry { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 5px solid #003087; }
-    #list { min-height: 200px; }
-    #refreshBtn { background: #003087; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-    #refreshBtn:hover { background: #002060; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column-reverse; /* ← Yeh important: new messages top par aayenge */
+      gap: 12px;
+    }
+    .message {
+      padding: 12px 18px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+      color: white;
+      font-size: 16px;
+    }
+    .red    { background: #e74c3c; align-self: flex-start; }
+    .blue   { background: #3498db; align-self: flex-start; }
+    .green  { background: #27ae60; align-self: flex-start; }
+    
+    #input-area {
+      display: flex;
+      margin-top: 15px;
+      gap: 10px;
+    }
+    #message-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 25px;
+      background: #003087;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover { background: #002060; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Admin Panel - Live Form Submissions</h1>
-    <button id="refreshBtn">Manual Refresh Karo</button>
-    <div id="list">Loading submissions... (Auto har 5 sec update)</div>
+
+  <div id="chat-container">
+    <!-- New messages yahan top par add honge -->
+  </div>
+
+  <div id="input-area">
+    <input type="text" id="message-input" placeholder="Apna message type karo..." autocomplete="off">
+    <button onclick="sendMessage()">Bhejo</button>
   </div>
 
   <script>
-    const list = document.getElementById('list');
-    const refreshBtn = document.getElementById('refreshBtn');
-    let interval;
+    const chatContainer = document.getElementById('chat-container');
+    const input = document.getElementById('message-input');
+    const colors = ['red', 'blue', 'green'];
+    let colorIndex = 0;
 
-    async function loadData() {
-      try {
-        const res = await fetch('/api/submissions');
-        if (!res.ok) throw new Error('API response not OK');
-        const data = await res.json();
-        console.log('Fetched data:', data); // console mein check karne ke liye
+    function addMessage(text) {
+      if (!text.trim()) return;
 
-        if (data.length === 0) {
-          list.innerHTML = '<p style="color: red;">Abhi koi submission nahi aaya hai.</p>';
-        } else {
-          list.innerHTML = data.map((item, index) => `
-            <div class="entry">
-              <strong>#${index + 1}</strong><br>
-              <strong>Name:</strong> ${item.name || 'N/A'}<br>
-              <strong>Mobile:</strong> ${item.mobile || 'N/A'}<br>
-              <strong>DOB:</strong> ${item.dob || 'N/A'}<br>
-              <small>Submitted at: ${item.time || 'N/A'}</small>
-            </div>
-          `).join('');
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        list.innerHTML = `<p style="color: red;">Error loading data: ${err.message}. Check console (F12) aur /api/submissions.</p>`;
-      }
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message', colors[colorIndex]);
+      msgDiv.textContent = text;
+
+      chatContainer.appendChild(msgDiv); // append karne se flex-reverse ki wajah se top par dikhega
+
+      colorIndex = (colorIndex + 1) % colors.length; // cycle: red → blue → green → red...
+      
+      input.value = ''; // clear input
+      input.focus();
     }
 
-    loadData(); // pehli baar
-    interval = setInterval(loadData, 5000); // auto
+    function sendMessage() {
+      const text = input.value;
+      addMessage(text);
+    }
 
-    refreshBtn.addEventListener('click', loadData);
+    // Enter key se bhej sake
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Optional: Pehle se kuch demo messages daal de
+    addMessage("Hello bhai, yeh red message hai!");
+    addMessage("Yeh blue wala hai.");
+    addMessage("Aur yeh green!");
   </script>
 </body>
 </html>
