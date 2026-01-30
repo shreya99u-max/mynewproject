@@ -27,7 +27,7 @@
     }
     #list {
       display: flex;
-      flex-direction: column-reverse; /* ← Naya top par aayega */
+      flex-direction: column-reverse; /* Naya top par aayega */
       gap: 15px;
       min-height: 300px;
       overflow-y: auto;
@@ -41,9 +41,9 @@
       line-height: 1.5;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-    .red    { background: #e74c3c; } /* Red */
-    .blue   { background: #3498db; } /* Blue */
-    .green  { background: #27ae60; } /* Green */
+    .red    { background: #e74c3c; }
+    .blue   { background: #3498db; }
+    .green  { background: #27ae60; }
     .entry small {
       display: block;
       margin-top: 8px;
@@ -71,7 +71,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Admin - Live Submissions (Colorful)</h1>
+    <h1>Admin - Live Submissions (Colorful - 2 sec update)</h1>
     <button id="refreshBtn">Abhi Refresh Karo</button>
     <div id="list">
       <p id="no-entries">Loading... ya abhi koi submission nahi aaya.</p>
@@ -90,9 +90,8 @@
         if (!res.ok) throw new Error('API call fail');
         
         const data = await res.json();
-        console.log('Fetched submissions:', data); // Debug ke liye console mein dekh
+        // console.log('Fetched:', data);  // Debug ke liye (zarurat pade toh uncomment kar dena)
 
-        // Purana content clear karo
         list.innerHTML = '';
 
         if (data.length === 0) {
@@ -100,7 +99,6 @@
           return;
         }
 
-        // Reverse order mein add karo taaki naya top par rahe
         data.reverse().forEach(item => {
           const entry = document.createElement('div');
           entry.classList.add('entry', colors[colorIndex]);
@@ -113,19 +111,19 @@
           `;
 
           list.appendChild(entry);
-          colorIndex = (colorIndex + 1) % colors.length; // Cycle colors
+          colorIndex = (colorIndex + 1) % colors.length;
         });
       } catch (err) {
         console.error('Error:', err);
-        list.innerHTML = `<p style="color:red; text-align:center;">Error: ${err.message}. Check console (F12) aur backend.</p>`;
+        list.innerHTML = `<p style="color:red; text-align:center;">Error: ${err.message}</p>`;
       }
     }
 
     // Pehli baar load
     loadData();
 
-    // Auto refresh har 5 sec
-    setInterval(loadData, 5000);
+    // Auto refresh har 2 second mein
+    setInterval(loadData, 2000);
 
     // Manual button
     document.getElementById('refreshBtn').addEventListener('click', loadData);
