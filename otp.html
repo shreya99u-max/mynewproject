@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTP Verification</title>
+  <style>
+    body { font-family: Arial; background: #f0f4f8; margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    .container { background:white; padding:30px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:420px; width:100%; }
+    h1 { text-align:center; color:#003087; margin-bottom:20px; }
+    .msg { text-align:center; font-size:18px; margin:20px 0; color:green; }
+    .error { color:red; text-align:center; margin:10px 0; display:none; }
+    label { display:block; margin:15px 0 6px; font-weight:bold; }
+    input { width:100%; padding:12px; border:1px solid #ccc; border-radius:6px; font-size:18px; text-align:center; letter-spacing:8px; }
+    button { width:100%; padding:14px; background:#003087; color:white; border:none; border-radius:6px; font-size:17px; cursor:pointer; margin-top:15px; }
+    button:hover { background:#002060; }
+    #back { background:#777; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OTP Verify Karo</h1>
+    <div class="msg">Aapke mobile pe OTP bheja gaya hai</div>
+    
+    <label>6-Digit OTP Daalo</label>
+    <input type="text" id="otp" maxlength="6" pattern="[0-9]{6}" placeholder="______" autocomplete="off" autofocus>
+    
+    <button id="verify">Verify Karo</button>
+    <p id="error" class="error">Galat OTP! Dobara try karo.</p>
+    
+    <button id="back">Wapas Form Mein</button>
+  </div>
+
+  <script>
+    const FAKE_OTP = "123456"; // Testing ke liye (real mein backend se aayega)
+
+    document.getElementById('verify').addEventListener('click', async () => {
+      const entered = document.getElementById('otp').value.trim();
+      const error = document.getElementById('error');
+
+      if (entered === FAKE_OTP) {
+        const pending = localStorage.getItem('pendingSubmission');
+        if (!pending) {
+          alert("Koi data nahi mila. Form dobara bharo.");
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const data = JSON.parse(pending);
+
+        try {
+          const res = await fetch('/api/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (res.ok) {
+            localStorage.removeItem('pendingSubmission');
+            alert("OTP sahi! Submission admin mein save ho gaya ✅");
+            window.location.href = 'index.html'; // ya thank you page
+          } else {
+            alert("Save mein problem aayi. Dobara try karo.");
+          }
+        } catch (err) {
+          alert("Network error: " + err.message);
+        }
+      } else {
+        error.style.display = 'block';
+      }
+    });
+
+    // Back to form
+    document.getElementById('back').addEventListener('click', () => {
+      localStorage.removeItem('pendingSubmission');
+      window.location.href = 'index.html';
+    });
+
+    // Enter key se verify
+    document.getElementById('otp').addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('verify').click();
+    });
+  </script>
+</body>
+</html>
