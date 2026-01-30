@@ -78,7 +78,7 @@
     document.getElementById('myForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      // Form se data collect karo
+      // Form data collect karo
       const data = {
         name: document.getElementById('name').value.trim(),
         mobile: document.getElementById('mobile').value.trim(),
@@ -86,10 +86,10 @@
         time: new Date().toLocaleString('en-IN')
       };
 
-      // Temporary save karo localStorage mein (OTP verify hone tak)
+      // Temporary save karo (OTP verify hone tak)
       localStorage.setItem('pendingSubmission', JSON.stringify(data));
 
-      // Koi alert nahi, seedha OTP page pe redirect
+      // Seedha OTP page pe redirect (koi alert/popup nahi)
       window.location.href = 'otp.html';
     });
   </script>
