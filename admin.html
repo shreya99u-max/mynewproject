@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Live Submissions</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: 30px auto; padding: 20px; background: #f0f4f8; }
+    h1 { color: #003087; text-align: center; }
+    .entry { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    #list { min-height: 200px; }
+  </style>
+</head>
+<body>
+  <h1>Admin Panel - Live Entries</h1>
+  <div id="list">Loading submissions... (har 5 sec update)</div>
+
+  <script>
+    const list = document.getElementById('list');
+    let interval;
+
+    function load() {
+      fetch('/api/submissions')
+        .then(res => res.json())
+        .then(data => {
+          if (data.length === 0) {
+            list.innerHTML = '<p>Abhi koi entry nahi aayi.</p>';
+          } else {
+            list.innerHTML = data.map(d => `
+              <div class="entry">
+                <strong>Name:</strong> ${d.name}<br>
+                <strong>Mobile:</strong> ${d.mobile}<br>
+                <strong>DOB:</strong> ${d.dob}<br>
+                <small>Time: ${d.time}</small>
+              </div>
+            `).join('');
+          }
+        })
+        .catch(() => list.innerHTML = '<p>Error loading data. Check if deployed correctly.</p>');
+    }
+
+    load(); // pehli baar load
+    interval = setInterval(load, 5000); // auto refresh har 5 sec
+  </script>
+</body>
+</html>
