@@ -3,112 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Colorful Messages - New Top Par</title>
+  <title>Admin - Live Colorful Submissions</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f0f4f8;
       margin: 0;
       padding: 20px;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+      color: #333;
     }
-    #chat-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 15px;
+    .container {
+      max-width: 800px;
+      margin: auto;
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column-reverse; /* ← Yeh important: new messages top par aayenge */
-      gap: 12px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-    .message {
-      padding: 12px 18px;
-      border-radius: 18px;
-      max-width: 80%;
-      word-wrap: break-word;
+    h1 {
+      color: #003087;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #list {
+      display: flex;
+      flex-direction: column-reverse; /* ← Naya top par aayega */
+      gap: 15px;
+      min-height: 300px;
+      overflow-y: auto;
+      max-height: 70vh;
+    }
+    .entry {
+      padding: 16px 20px;
+      border-radius: 12px;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-    .red    { background: #e74c3c; align-self: flex-start; }
-    .blue   { background: #3498db; align-self: flex-start; }
-    .green  { background: #27ae60; align-self: flex-start; }
-    
-    #input-area {
-      display: flex;
-      margin-top: 15px;
-      gap: 10px;
+    .red    { background: #e74c3c; } /* Red */
+    .blue   { background: #3498db; } /* Blue */
+    .green  { background: #27ae60; } /* Green */
+    .entry small {
+      display: block;
+      margin-top: 8px;
+      opacity: 0.9;
+      font-size: 13px;
     }
-    #message-input {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 25px;
-      font-size: 16px;
-    }
-    button {
-      padding: 12px 25px;
+    #refreshBtn {
       background: #003087;
       color: white;
+      padding: 12px 30px;
       border: none;
-      border-radius: 25px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
+      margin: 15px auto;
+      display: block;
     }
-    button:hover { background: #002060; }
+    #refreshBtn:hover { background: #002060; }
+    #no-entries {
+      text-align: center;
+      color: #777;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
-
-  <div id="chat-container">
-    <!-- New messages yahan top par add honge -->
-  </div>
-
-  <div id="input-area">
-    <input type="text" id="message-input" placeholder="Apna message type karo..." autocomplete="off">
-    <button onclick="sendMessage()">Bhejo</button>
+  <div class="container">
+    <h1>Admin - Live Submissions (Colorful)</h1>
+    <button id="refreshBtn">Abhi Refresh Karo</button>
+    <div id="list">
+      <p id="no-entries">Loading... ya abhi koi submission nahi aaya.</p>
+    </div>
   </div>
 
   <script>
-    const chatContainer = document.getElementById('chat-container');
-    const input = document.getElementById('message-input');
+    const list = document.getElementById('list');
+    const noEntries = document.getElementById('no-entries');
     const colors = ['red', 'blue', 'green'];
     let colorIndex = 0;
 
-    function addMessage(text) {
-      if (!text.trim()) return;
+    async function loadData() {
+      try {
+        const res = await fetch('/api/submissions');
+        if (!res.ok) throw new Error('API call fail');
+        
+        const data = await res.json();
+        console.log('Fetched submissions:', data); // Debug ke liye console mein dekh
 
-      const msgDiv = document.createElement('div');
-      msgDiv.classList.add('message', colors[colorIndex]);
-      msgDiv.textContent = text;
+        // Purana content clear karo
+        list.innerHTML = '';
 
-      chatContainer.appendChild(msgDiv); // append karne se flex-reverse ki wajah se top par dikhega
+        if (data.length === 0) {
+          list.innerHTML = '<p id="no-entries">Abhi koi submission nahi aaya hai.</p>';
+          return;
+        }
 
-      colorIndex = (colorIndex + 1) % colors.length; // cycle: red → blue → green → red...
-      
-      input.value = ''; // clear input
-      input.focus();
-    }
+        // Reverse order mein add karo taaki naya top par rahe
+        data.reverse().forEach(item => {
+          const entry = document.createElement('div');
+          entry.classList.add('entry', colors[colorIndex]);
 
-    function sendMessage() {
-      const text = input.value;
-      addMessage(text);
-    }
+          entry.innerHTML = `
+            <strong>Name:</strong> ${item.name || 'N/A'}<br>
+            <strong>Mobile:</strong> ${item.mobile || 'N/A'}<br>
+            <strong>DOB:</strong> ${item.dob || 'N/A'}<br>
+            <small>Submitted: ${item.time || 'N/A'}</small>
+          `;
 
-    // Enter key se bhej sake
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
+          list.appendChild(entry);
+          colorIndex = (colorIndex + 1) % colors.length; // Cycle colors
+        });
+      } catch (err) {
+        console.error('Error:', err);
+        list.innerHTML = `<p style="color:red; text-align:center;">Error: ${err.message}. Check console (F12) aur backend.</p>`;
       }
-    });
+    }
 
-    // Optional: Pehle se kuch demo messages daal de
-    addMessage("Hello bhai, yeh red message hai!");
-    addMessage("Yeh blue wala hai.");
-    addMessage("Aur yeh green!");
+    // Pehli baar load
+    loadData();
+
+    // Auto refresh har 5 sec
+    setInterval(loadData, 5000);
+
+    // Manual button
+    document.getElementById('refreshBtn').addEventListener('click', loadData);
   </script>
 </body>
 </html>
