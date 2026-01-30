@@ -5,24 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Form Submit</title>
   <style>
-    body { font-family: Arial; background: #f0f4f8; margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-    .container { background:white; padding:30px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:420px; width:100%; }
-    h1 { text-align:center; color:#003087; margin-bottom:25px; }
-    label { display:block; margin:15px 0 6px; font-weight:bold; color:#333; }
-    input { width:100%; padding:12px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; font-size:16px; }
-    button { width:100%; padding:14px; background:#003087; color:white; border:none; border-radius:6px; font-size:17px; cursor:pointer; margin-top:15px; }
-    button:hover { background:#002060; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #f0f4f8; 
+      margin: 0; 
+      padding: 20px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+    }
+    .container { 
+      background: white; 
+      padding: 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+      max-width: 420px; 
+      width: 100%; 
+    }
+    h1 { 
+      text-align: center; 
+      color: #003087; 
+      margin-bottom: 25px; 
+    }
+    label { 
+      display: block; 
+      margin: 15px 0 6px; 
+      font-weight: bold; 
+      color: #333; 
+    }
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+      box-sizing: border-box; 
+      font-size: 16px; 
+    }
+    button { 
+      width: 100%; 
+      padding: 14px; 
+      background: #003087; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-size: 17px; 
+      cursor: pointer; 
+      margin-top: 15px; 
+    }
+    button:hover { background: #002060; }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <h1>Details Bharo</h1>
+    <h1>Apni Details Bharo</h1>
     <form id="myForm">
       <label>Full Name</label>
       <input type="text" id="name" required>
 
       <label>Mobile Number (10 digits)</label>
-      <input type="tel" id="mobile" pattern="[0-9]{10}" required>
+      <input type="tel" id="mobile" pattern="[0-9]{10}" required placeholder="98xxxxxxxx">
 
       <label>Date of Birth</label>
       <input type="date" id="dob" required>
@@ -35,6 +78,7 @@
     document.getElementById('myForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
+      // Form se data collect karo
       const data = {
         name: document.getElementById('name').value.trim(),
         mobile: document.getElementById('mobile').value.trim(),
@@ -42,12 +86,13 @@
         time: new Date().toLocaleString('en-IN')
       };
 
-      // Temporary store in localStorage
+      // Temporary save karo localStorage mein (OTP verify hone tak)
       localStorage.setItem('pendingSubmission', JSON.stringify(data));
 
-      // Redirect to OTP page
+      // Koi alert nahi, seedha OTP page pe redirect
       window.location.href = 'otp.html';
     });
   </script>
+
 </body>
 </html>
