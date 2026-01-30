@@ -9,21 +9,20 @@
       font-family: Arial, sans-serif;
       background: #f0f4f8;
       margin: 0;
-      padding: 12px;
+      padding: 10px;
       color: #111;
     }
     .container {
       max-width: 100%;
       margin: 0 auto;
       background: white;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 10px;
+      border-radius: 8px;
     }
     #list {
       display: flex;
       flex-direction: column-reverse;
-      gap: 12px;
+      gap: 10px;
       min-height: 80vh;
       overflow-y: auto;
       padding-bottom: 20px;
@@ -33,14 +32,28 @@
       border-radius: 10px;
       font-size: 15px;
       line-height: 1.5;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
       color: #fff;
       word-break: break-word;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      0%   { opacity: 0; transform: scale(0.95); }
+      50%  { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    /* Blink effect for new entries only */
+    .new-entry {
+      animation: blink 1.2s infinite alternate;
+    }
+    @keyframes blink {
+      from { opacity: 0.4; }
+      to   { opacity: 1; }
     }
     .red    { background: #e74c3c; }
     .blue   { background: #3498db; }
     .black  { background: #2c3e50; }
-    .white  { background: #7f8c8d; color: #fff; } /* dark text nahi dikhe isliye grayish white */
+    .white  { background: #7f8c8d; }
     .pink   { background: #e84393; }
 
     .entry small {
@@ -74,6 +87,7 @@
   <script>
     const list = document.getElementById('list');
     const colors = ['red', 'blue', 'black', 'white', 'pink'];
+    let previousLength = 0; // Pehle kitne submissions the, track karne ke liye
 
     async function loadData() {
       try {
@@ -82,7 +96,10 @@
 
         const data = await res.json();
 
-        // Purana content clear
+        // Agar data length badha toh naye entries blink karenge
+        const isNew = data.length > previousLength;
+        previousLength = data.length;
+
         list.innerHTML = '';
 
         if (data.length === 0) {
@@ -90,14 +107,17 @@
           return;
         }
 
-        // Reverse taaki latest top par rahe
+        // Reverse taaki latest top par
         data.reverse().forEach((item, index) => {
           const entry = document.createElement('div');
-          
-          // Color fixed rahega index ke hisaab se (refresh pe change nahi)
           const colorClass = colors[index % colors.length];
 
           entry.classList.add('entry', colorClass);
+
+          // Sirf naye entries pe blink (jab refresh pe length badhe)
+          if (isNew && index < (data.length - previousLength + 1)) {
+            entry.classList.add('new-entry');
+          }
 
           entry.innerHTML = `
             <strong>Name:</strong> ${item.name || 'N/A'}<br>
@@ -113,11 +133,8 @@
       }
     }
 
-    // Pehli baar load
     loadData();
-
-    // Har 2 second mein auto refresh
-    setInterval(loadData, 2000);
+    setInterval(loadData, 2000); // 2 sec auto refresh
   </script>
 </body>
 </html>
