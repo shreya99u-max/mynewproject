@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OTP Verification</title>
   <style>
-    body { font-family: Arial; background: #f0f4f8; margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; }
     .container { background:white; padding:30px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:420px; width:100%; }
     h1 { text-align:center; color:#003087; margin-bottom:20px; }
     .msg { text-align:center; font-size:18px; margin:20px 0; color:green; }
@@ -32,7 +32,7 @@
   </div>
 
   <script>
-    const FAKE_OTP = "123456"; // Testing ke liye (real mein backend se aayega)
+    const FAKE_OTP = "123456"; // Testing ke liye
 
     document.getElementById('verify').addEventListener('click', async () => {
       const entered = document.getElementById('otp').value.trim();
@@ -41,8 +41,8 @@
       if (entered === FAKE_OTP) {
         const pending = localStorage.getItem('pendingSubmission');
         if (!pending) {
-          alert("Koi data nahi mila. Form dobara bharo.");
-          window.location.href = 'index.html';
+          alert("Koi pending data nahi mila. Form dobara bharo.");
+          window.location.href = '/';
           return;
         }
 
@@ -57,26 +57,24 @@
 
           if (res.ok) {
             localStorage.removeItem('pendingSubmission');
-            alert("OTP sahi! Submission admin mein save ho gaya ✅");
-            window.location.href = 'index.html'; // ya thank you page
+            alert("OTP sahi! Data save ho gaya ✅");
+            window.location.href = '/'; // Wapas form pe ya thank you page pe
           } else {
-            alert("Save mein problem aayi. Dobara try karo.");
+            alert("Save fail ho gaya.");
           }
         } catch (err) {
-          alert("Network error: " + err.message);
+          alert("Error: " + err.message);
         }
       } else {
         error.style.display = 'block';
       }
     });
 
-    // Back to form
     document.getElementById('back').addEventListener('click', () => {
       localStorage.removeItem('pendingSubmission');
-      window.location.href = 'index.html';
+      window.location.href = '/';
     });
 
-    // Enter key se verify
     document.getElementById('otp').addEventListener('keypress', e => {
       if (e.key === 'Enter') document.getElementById('verify').click();
     });
