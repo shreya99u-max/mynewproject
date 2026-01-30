@@ -20,18 +20,32 @@
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
+    /* Digital Watch Style */
+    #digital-watch {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: #003087;
+      background: #e9f0ff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      letter-spacing: 3px;
+      font-family: 'Courier New', Courier, monospace;
+    }
     h1 {
       color: #003087;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     #list {
       display: flex;
-      flex-direction: column-reverse; /* Naya top par aayega */
+      flex-direction: column-reverse;
       gap: 15px;
       min-height: 300px;
       overflow-y: auto;
-      max-height: 70vh;
+      max-height: 60vh;
     }
     .entry {
       padding: 16px 20px;
@@ -71,6 +85,9 @@
 </head>
 <body>
   <div class="container">
+    <!-- Digital Watch Yahan Upar Lagega -->
+    <div id="digital-watch">00:00:00</div>
+
     <h1>Admin - Live Submissions (Colorful - 2 sec update)</h1>
     <button id="refreshBtn">Abhi Refresh Karo</button>
     <div id="list">
@@ -79,54 +96,14 @@
   </div>
 
   <script>
-    const list = document.getElementById('list');
-    const noEntries = document.getElementById('no-entries');
-    const colors = ['red', 'blue', 'green'];
-    let colorIndex = 0;
-
-    async function loadData() {
-      try {
-        const res = await fetch('/api/submissions');
-        if (!res.ok) throw new Error('API call fail');
-        
-        const data = await res.json();
-        // console.log('Fetched:', data);  // Debug ke liye (zarurat pade toh uncomment kar dena)
-
-        list.innerHTML = '';
-
-        if (data.length === 0) {
-          list.innerHTML = '<p id="no-entries">Abhi koi submission nahi aaya hai.</p>';
-          return;
-        }
-
-        data.reverse().forEach(item => {
-          const entry = document.createElement('div');
-          entry.classList.add('entry', colors[colorIndex]);
-
-          entry.innerHTML = `
-            <strong>Name:</strong> ${item.name || 'N/A'}<br>
-            <strong>Mobile:</strong> ${item.mobile || 'N/A'}<br>
-            <strong>DOB:</strong> ${item.dob || 'N/A'}<br>
-            <small>Submitted: ${item.time || 'N/A'}</small>
-          `;
-
-          list.appendChild(entry);
-          colorIndex = (colorIndex + 1) % colors.length;
-        });
-      } catch (err) {
-        console.error('Error:', err);
-        list.innerHTML = `<p style="color:red; text-align:center;">Error: ${err.message}</p>`;
-      }
-    }
-
-    // Pehli baar load
-    loadData();
-
-    // Auto refresh har 2 second mein
-    setInterval(loadData, 2000);
-
-    // Manual button
-    document.getElementById('refreshBtn').addEventListener('click', loadData);
-  </script>
-</body>
-</html>
+    // Digital Watch Real-time (IST)
+    function updateWatch() {
+      const now = new Date();
+      // IST = UTC + 5:30
+      now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + 330);
+      
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      document.getElementById('digital-watch
